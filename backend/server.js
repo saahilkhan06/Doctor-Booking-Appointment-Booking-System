@@ -15,7 +15,7 @@ const port = process.env.PORT || 4000;
 app.use(express.json());
 app.use(cors({
   origin: [
-    'https://doctor-appointment-familytreehospital.vercel.app/',
+    'https://doctor-appointment-familytreehospital.vercel.app',
     'https://doctor-booking-appointment-booking-three.vercel.app'
   ]
 }))
