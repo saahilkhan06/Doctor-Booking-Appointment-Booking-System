@@ -7,7 +7,7 @@ const TopDoctors = () => {
   const { doctors } = useContext(AppContext);
 
   return (
-    <div className="flex flex-col items-center gap-4 my-16 text-[#262626] md:mx-10">
+    <div className="flex flex-col items-center gap-4 my-12 text-[#262626] md:mx-16">
       <h1 className="text-3xl font-medium">Top Doctors to Book</h1>
       <p className="sm:w-1/3 text-center text-sm">
         Simply browse through our extensive list of trusted doctors.

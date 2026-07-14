@@ -124,7 +124,7 @@ const SymptomChecker = () => {
         <button
           onClick={() => setIsOpen(true)}
           className="fixed bottom-8 right-8 z-50 flex flex-col items-center justify-center bg-teal-400 text-black rounded-full shadow-2xl hover:shadow-primary/50 hover:scale-105 transition-all duration-300"
-          style={{ width: "130px", height: "130px" }}
+          style={{ width: "80px", height: "200px" }}
           title="AI Symptom Checker"
         >
           {/* Pulse ring */}
@@ -161,7 +161,7 @@ const SymptomChecker = () => {
           style={{ maxHeight: "90vh" }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between bg-primary text-white px-4 py-3 rounded-t-2xl flex-shrink-0">
+          <div className="flex items-center justify-between bg-teal-600 text-white px-4 py-3 rounded-t-2xl flex-shrink-0">
             <div className="flex items-center gap-2">
               {/* Bot avatar */}
               <div className="w-8 h-8 bg-white/20 rounded-full flex items-center justify-center">
@@ -180,7 +180,7 @@ const SymptomChecker = () => {
                   <circle cx="20" cy="10" r="2" />
                 </svg>
               </div>
-              <div>
+              <div clas>
                 <p className="font-semibold text-sm leading-tight">MediBot</p>
                 <p className="text-[10px] text-white/70 leading-tight">
                   AI Symptom Checker
@@ -269,7 +269,7 @@ const SymptomChecker = () => {
                     }`}
                   >
                     {msg.role === "assistant" && (
-                      <div className="w-6 h-6 bg-primary rounded-full flex items-center justify-center flex-shrink-0 mr-2 mt-1">
+                      <div className="w-6 h-6 bg-gray-950 rounded-full flex items-center justify-center flex-shrink-0 mr-2 mt-1">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
                           className="w-3 h-3 text-white"
@@ -355,7 +355,7 @@ const SymptomChecker = () => {
                   <button
                     onClick={sendMessage}
                     disabled={!input.trim() || loading}
-                    className="w-9 h-9 bg-primary text-white rounded-xl flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 hover:scale-105 active:scale-95"
+                    className="w-9 h-9 bg-slate-500 text-white rounded-xl flex items-center justify-center hover:bg-primary/90 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex-shrink-0 hover:scale-105 active:scale-95"
                   >
                     <svg
                       xmlns="http://www.w3.org/2000/svg"
