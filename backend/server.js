@@ -13,12 +13,15 @@ const port = process.env.PORT || 4000;
 
 // middlewares
 app.use(express.json());
-app.use(cors({
-  origin: [
-    'https://doctor-appointment-familytreehospital.vercel.app',
-    'https://doctor-booking-appointment-booking-three.vercel.app'
-  ]
-}))
+app.use(
+  cors({
+    origin: [
+      "https://doctor-appointment-familytreehospital.vercel.app",
+      "https://doctor-booking-appointment-booking-three.vercel.app",
+      "http://localhost:5173",
+    ],
+  }),
+);
 // api endpoints
 app.use("/api/user", userRouter);
 app.use("/api/admin", adminRouter);
