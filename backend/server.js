@@ -18,12 +18,24 @@ const port = process.env.PORT || 4000;
 app.use(express.json());
 app.use(
   cors({
-    origin: [
-      "https://doctor-appointment-familytreehospital.vercel.app",
-      "https://doctor-booking-appointment-booking-three.vercel.app",
-      "http://localhost:5173",
-      "http://localhost:5174",
-    ],
+    origin: function (origin, callback) {
+      const allowedOrigins = [
+        "https://doctor-appointment-familytreehospital.vercel.app",
+        "http://localhost:5173",
+        "http://localhost:5174",
+      ];
+      const isVercelPreview =
+        origin &&
+        /^https:\/\/doctor-booking-appointment-booking.*\.vercel\.app$/.test(
+          origin,
+        );
+
+      if (!origin || allowedOrigins.includes(origin) || isVercelPreview) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
   }),
 );
 
