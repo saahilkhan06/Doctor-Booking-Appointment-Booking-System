@@ -180,7 +180,7 @@ const SymptomChecker = () => {
                   <circle cx="20" cy="10" r="2" />
                 </svg>
               </div>
-              <div clas>
+              <div>
                 <p className="font-semibold text-sm leading-tight">MediBot</p>
                 <p className="text-[10px] text-white/70 leading-tight">
                   AI Symptom Checker
