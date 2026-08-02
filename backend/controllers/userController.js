@@ -7,6 +7,12 @@ import appointmentModel from "../models/appointmentModel.js";
 import { v2 as cloudinary } from "cloudinary";
 import stripe from "stripe";
 // import razorpay from "razorpay";
+import { sendEmail } from "../utils/sendEmail.js";
+import {
+  appointmentBookedTemplate,
+  appointmentCancelledTemplate,
+  paymentSuccessTemplate,
+} from "../utils/emailTemplates.js";
 
 // Gateway Initialize
 const stripeInstance = new stripe(process.env.STRIPE_SECRET_KEY);
@@ -179,6 +185,19 @@ const bookAppointment = async (req, res) => {
     // save new slots data in docData
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
 
+    // send booking confirmation email (fire-and-forget so it never blocks the response)
+    sendEmail({
+      to: userData.email,
+      subject: "Your Appointment is Confirmed",
+      html: appointmentBookedTemplate({
+        patientName: userData.name,
+        doctorName: docData.name,
+        speciality: docData.speciality,
+        date: slotDate,
+        time: slotTime,
+      }),
+    }).catch((err) => console.log("Booking email failed:", err.message));
+
     res.json({ success: true, message: "Appointment Booked" });
   } catch (error) {
     console.log(error);
@@ -213,6 +232,18 @@ const cancelAppointment = async (req, res) => {
     );
 
     await doctorModel.findByIdAndUpdate(docId, { slots_booked });
+
+    // send cancellation email (fire-and-forget so it never blocks the response)
+    sendEmail({
+      to: appointmentData.userData.email,
+      subject: "Your Appointment was Cancelled",
+      html: appointmentCancelledTemplate({
+        patientName: appointmentData.userData.name,
+        doctorName: appointmentData.docData.name,
+        date: slotDate,
+        time: slotTime,
+      }),
+    }).catch((err) => console.log("Cancellation email failed:", err.message));
 
     res.json({ success: true, message: "Appointment Cancelled" });
   } catch (error) {
@@ -333,9 +364,27 @@ const verifyStripe = async (req, res) => {
     const { appointmentId, success } = req.body;
 
     if (success === "true") {
-      await appointmentModel.findByIdAndUpdate(appointmentId, {
-        payment: true,
-      });
+      const appointmentData = await appointmentModel.findByIdAndUpdate(
+        appointmentId,
+        { payment: true },
+      );
+
+      // send payment confirmation email (fire-and-forget so it never blocks the response)
+      if (appointmentData) {
+        sendEmail({
+          to: appointmentData.userData.email,
+          subject: "Payment Received - Prescripto",
+          html: paymentSuccessTemplate({
+            patientName: appointmentData.userData.name,
+            amount: appointmentData.amount,
+            doctorName: appointmentData.docData.name,
+            date: appointmentData.slotDate,
+          }),
+        }).catch((err) =>
+          console.log("Payment confirmation email failed:", err.message),
+        );
+      }
+
       return res.json({ success: true, message: "Payment Successful" });
     }
 
