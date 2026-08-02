@@ -13,7 +13,7 @@ const TopDoctors = () => {
         Simply browse through our extensive list of trusted doctors.
       </p>
       <div className="w-full grid grid-cols-auto gap-4 pt-5 pb-5  gap-y-6 px-3  bg-slate-700 te rounded-lg">
-        {doctors.slice(0, 10).map((item, index) => (
+        {doctors.slice(0, 8).map((item, index) => (
           <div
             onClick={() => {
               navigate(`/appointment/${item._id}`);
