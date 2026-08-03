@@ -32,6 +32,13 @@ const AppContextProvider = (props) => {
 
     }
 
+    // Clears an invalid/expired token so it can't get stuck and cause redirect loops
+    const clearInvalidToken = () => {
+        localStorage.removeItem('token')
+        setToken('')
+        setUserData(false)
+    }
+
     // Getting User Profile using API
     const loadUserProfileData = async () => {
 
@@ -43,11 +50,17 @@ const AppContextProvider = (props) => {
                 setUserData(data.userData)
             } else {
                 toast.error(data.message)
+                clearInvalidToken()
             }
 
         } catch (error) {
             console.log(error)
-            toast.error(error.message)
+            // 401/403 means the token is invalid or expired - clear it instead of leaving it stuck
+            if (error.response?.status === 401 || error.response?.status === 403) {
+                clearInvalidToken()
+            } else {
+                toast.error(error.message)
+            }
         }
 
     }
@@ -67,7 +80,7 @@ const AppContextProvider = (props) => {
         currencySymbol,
         backendUrl,
         token, setToken,
-        userData, setUserData, loadUserProfileData
+        userData, setUserData, loadUserProfileData, clearInvalidToken
     }
 
     return (
