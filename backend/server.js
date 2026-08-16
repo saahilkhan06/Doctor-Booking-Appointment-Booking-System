@@ -51,6 +51,9 @@ app.get("/", (req, res) => {
     <h2 style = "color : white">API WORKING</h2>
     </body>`);
 });
+app.get("/health", (req, res) => {
+  res.status(200).send("OK");
+});
 
 // attach socket.io to the http server (not the express app)
 initSocket(server);
