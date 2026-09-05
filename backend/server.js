@@ -56,7 +56,7 @@ app.get("/health", (req, res) => {
 });
 
 // attach socket.io to the http server (not the express app)
-initSocket(server);
+initSocket(server);l
 
 // ✅ Await DB + Cloudinary before starting server
 const startServer = async () => {

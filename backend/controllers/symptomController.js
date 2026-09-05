@@ -1,3 +1,129 @@
+// const SYSTEM_PROMPT = `You are MediBot, a friendly and knowledgeable AI medical assistant integrated into Prescripto, a doctor appointment booking platform.
+
+// Your role is to:
+// 1. Listen carefully to the user's described symptoms
+// 2. Ask relevant follow-up questions (age, duration of symptoms, severity, any existing conditions)
+// 3. Suggest possible conditions that match the symptoms (always mention 2-4 possibilities, from most to least likely)
+// 4. Recommend the appropriate type of specialist doctor they should see and in my option list there are only few and they are general physician,dermatologist,neurologist,gynecologist,pediatricians,gastroenterologist...suggest only with these specialist
+// 5. Indicate urgency level: 🟢 Non-urgent | 🟡 See a doctor soon | 🔴 Seek immediate care
+
+// Formatting rules:
+// - Use **bold** for important terms
+// - Use clear sections with emoji headings
+// - Keep responses concise and easy to understand
+// - Use plain language — avoid heavy medical jargon
+
+// Always end with a reminder that this is not a medical diagnosis and they should book an appointment with a qualified doctor.
+
+// IMPORTANT RESTRICTIONS:
+// - Never prescribe specific medications or dosages
+// - Never tell users to ignore serious symptoms
+// - For emergencies (chest pain, difficulty breathing, stroke symptoms, severe bleeding), immediately tell them to call emergency services (112 in India)
+// - Do not discuss topics unrelated to health and symptoms
+// - Always be empathetic and reassuring`;
+
+// // Free models to try in order — if one is rate limited, next is used
+// const FREE_MODELS = ["GPT-6 Astra"];
+
+// const callOpenRouter = async (model, messages) => {
+//   const response = await fetch(
+//     "https://openrouter.ai/api/v1/chat/completions",
+//     {
+//       method: "POST",
+//       headers: {
+//         Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+//         "Content-Type": "application/json",
+//         "HTTP-Referer": "http://localhost:5173",
+//         "X-Title": "Prescripto Symptom Checker",
+//       },
+//       body: JSON.stringify({
+//         model,
+//         messages,
+//         max_tokens: 1024,
+//         temperature: 0.7,
+//       }),
+//     },
+//   );
+
+//   const data = await response.json();
+//   return { ok: response.ok, data, status: response.status };
+// };
+
+// export const checkSymptoms = async (req, res) => {
+//   try {
+//     const { symptoms, history = [] } = req.body;
+
+//     if (!symptoms || symptoms.trim().length === 0) {
+//       return res.status(400).json({
+//         success: false,
+//         message: "Please describe your symptoms",
+//       });
+//     }
+
+//     // Build conversation history
+//     const conversationMessages = history
+//       .filter((msg) => msg.role === "user" || msg.role === "assistant")
+//       .slice(-10)
+//       .map((msg) => ({
+//         role: msg.role,
+//         content: msg.content,
+//       }));
+
+//     conversationMessages.push({ role: "user", content: symptoms });
+
+//     const messages = [
+//       { role: "system", content: SYSTEM_PROMPT },
+//       ...conversationMessages,
+//     ];
+
+//     // Try each free model until one works
+//     let lastError = null;
+//     for (const model of FREE_MODELS) {
+//       const { ok, data } = await callOpenRouter(model, messages);
+
+//       if (ok && data.choices?.[0]?.message?.content) {
+//         console.log(`✅ Responded using model: ${model}`);
+//         return res.json({
+//           success: true,
+//           response: data.choices[0].message.content,
+//         });
+//       }
+
+//       // If rate limited or not found, try next model
+//       const errorCode = data?.error?.code;
+//       if (errorCode === 429 || errorCode === 404) {
+//         console.log(
+//           `⚠️ Model ${model} unavailable (${errorCode}), trying next...`,
+//         );
+//         lastError = data?.error?.message;
+//         console.log(JSON.stringify(data, null, 2));
+//         continue;
+//       }
+
+//       // Any other error — stop and report
+//       console.error("OpenRouter error:", data);
+//       return res.status(500).json({
+//         success: false,
+//         message: "AI service error. Please try again.",
+//       });
+//     }
+
+//     // All models failed
+//     console.error("All models exhausted. Last error:", lastError);
+//     return res.status(429).json({
+//       success: false,
+//       message:
+//         "All free AI models are busy right now. Please try again in a few seconds.",
+//     });
+//   } catch (error) {
+//     console.error("Symptom checker error:", error);
+//     res.status(500).json({
+//       success: false,
+//       message: "Failed to analyze symptoms. Please try again.",
+//     });
+//   }
+// };
+
 const SYSTEM_PROMPT = `You are MediBot, a friendly and knowledgeable AI medical assistant integrated into Prescripto, a doctor appointment booking platform.
 
 Your role is to:
@@ -22,31 +148,56 @@ IMPORTANT RESTRICTIONS:
 - Do not discuss topics unrelated to health and symptoms
 - Always be empathetic and reassuring`;
 
-// Free models to try in order — if one is rate limited, next is used
-const FREE_MODELS = ["openai/gpt-oss-20b:free"];
+// Free models to try in order — if one is rate limited or missing, next is used.
+// IMPORTANT: These must be the exact OpenRouter model slugs (provider/model-name),
+// NOT the display names shown in the OpenRouter UI. Get the real slug from the
+// model's page on openrouter.ai/models — click into "GPT-6 Astra" and copy the
+// ID shown there (often ends in ":free" for the no-cost variant).
+const FREE_MODELS = [
+  "REPLACE_WITH_ACTUAL_OPENROUTER_SLUG", // e.g. "openai/gpt-6-astra:free" — verify on the model's page
+];
+
+const OPENROUTER_TIMEOUT_MS = 15000;
 
 const callOpenRouter = async (model, messages) => {
-  const response = await fetch(
-    "https://openrouter.ai/api/v1/chat/completions",
-    {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
-        "Content-Type": "application/json",
-        "HTTP-Referer": "http://localhost:5173",
-        "X-Title": "Prescripto Symptom Checker",
-      },
-      body: JSON.stringify({
-        model,
-        messages,
-        max_tokens: 1024,
-        temperature: 0.7,
-      }),
-    },
-  );
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), OPENROUTER_TIMEOUT_MS);
 
-  const data = await response.json();
-  return { ok: response.ok, data, status: response.status };
+  try {
+    const response = await fetch(
+      "https://openrouter.ai/api/v1/chat/completions",
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${process.env.OPENROUTER_API_KEY}`,
+          "Content-Type": "application/json",
+          "HTTP-Referer": process.env.APP_URL || "http://localhost:5173",
+          "X-Title": "Prescripto Symptom Checker",
+        },
+        body: JSON.stringify({
+          model,
+          messages,
+          max_tokens: 1024,
+          temperature: 0.7,
+        }),
+        signal: controller.signal,
+      },
+    );
+
+    const data = await response.json();
+    return { ok: response.ok, data, status: response.status };
+  } catch (err) {
+    if (err.name === "AbortError") {
+      return {
+        ok: false,
+        data: { error: { message: "Request timed out" } },
+        status: 504,
+      };
+    }
+    throw err;
+  } finally {
+    clearTimeout(timeout);
+  }
 };
 
 export const checkSymptoms = async (req, res) => {
@@ -79,7 +230,7 @@ export const checkSymptoms = async (req, res) => {
     // Try each free model until one works
     let lastError = null;
     for (const model of FREE_MODELS) {
-      const { ok, data } = await callOpenRouter(model, messages);
+      const { ok, data, status } = await callOpenRouter(model, messages);
 
       if (ok && data.choices?.[0]?.message?.content) {
         console.log(`✅ Responded using model: ${model}`);
@@ -89,11 +240,10 @@ export const checkSymptoms = async (req, res) => {
         });
       }
 
-      // If rate limited or not found, try next model
-      const errorCode = data?.error?.code;
-      if (errorCode === 429 || errorCode === 404) {
+      // If rate limited, model unavailable, or not found, try next model
+      if (status === 429 || status === 404) {
         console.log(
-          `⚠️ Model ${model} unavailable (${errorCode}), trying next...`,
+          `⚠️ Model ${model} unavailable (${status}), trying next...`,
         );
         lastError = data?.error?.message;
         console.log(JSON.stringify(data, null, 2));
