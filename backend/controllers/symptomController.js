@@ -154,7 +154,10 @@ IMPORTANT RESTRICTIONS:
 // model's page on openrouter.ai/models — click into "GPT-6 Astra" and copy the
 // ID shown there (often ends in ":free" for the no-cost variant).
 const FREE_MODELS = [
-  "REPLACE_WITH_ACTUAL_OPENROUTER_SLUG", // e.g. "openai/gpt-6-astra:free" — verify on the model's page
+  "openai/gpt-6-astra:free", // replace with the real slug from the model page
+  "meta-llama/llama-3.3-70b-instruct:free",
+  "google/gemini-2.0-flash-exp:free",
+  "mistralai/mistral-7b-instruct:free", // e.g. "openai/gpt-6-astra:free" — verify on the model's page
 ];
 
 const OPENROUTER_TIMEOUT_MS = 15000;
